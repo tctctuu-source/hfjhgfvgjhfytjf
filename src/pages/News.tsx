@@ -18,25 +18,27 @@ const News: React.FC = () => {
       setLoading(true);
       setError(null);
 
-      let query = supabase
-        .from('news')
-        .select('*')
-        .eq('status', 'published')
-        .order('created_at', { ascending: false });
+      try {
+        let query = supabase
+          .from('news')
+          .select('*')
+          .eq('status', 'published')
+          .order('created_at', { ascending: false });
 
-      if (selectedCategory !== 'all') {
-        query = query.eq('category', selectedCategory);
-      }
+        if (selectedCategory !== 'all') {
+          query = query.eq('category', selectedCategory);
+        }
 
-      const { data, error } = await query;
+        const { data, error: queryError } = await query;
 
-      if (error) {
-        setError(error.message);
-        console.error("Error fetching news:", error);
-      } else {
+        if (queryError) throw queryError;
         setNewsItems(data || []);
+      } catch (err: any) {
+        setError("Could not fetch news. Please ensure your Supabase project is connected and running.");
+        console.error("Error fetching news:", err);
+      } finally {
+        setLoading(false);
       }
-      setLoading(false);
     };
 
     fetchNews();
@@ -68,7 +70,7 @@ const News: React.FC = () => {
           transition={{ duration: 0.6 }}
           className="text-center mb-12"
         >
-          <h1 className="text-4xl font-bold text-gray-900 mb-4">Latest News & Updates</h1>
+          <h1 className="text-4xl font-bold text-gray-900 mb-4 font-serif">Latest News & Updates</h1>
           <p className="text-gray-600 max-w-2xl mx-auto">
             Stay updated with the latest announcements, events, and news from Muhimmath
           </p>
@@ -114,9 +116,11 @@ const News: React.FC = () => {
             <span className="ml-4 text-gray-600">Loading News...</span>
           </div>
         ) : error ? (
-          <div className="text-center py-12 text-red-600">
-            <h3 className="text-xl font-semibold">Error loading news</h3>
-            <p>{error}</p>
+          <div className="text-center py-12">
+            <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded-lg inline-block">
+              <h3 className="font-bold">Connection Error</h3>
+              <p>{error}</p>
+            </div>
           </div>
         ) : (
           <>
@@ -139,7 +143,7 @@ const News: React.FC = () => {
                       className="bg-white rounded-lg shadow-lg overflow-hidden hover:shadow-xl transition-shadow"
                     >
                       <img
-                        src={item.image_url || 'https://img-wrapper.vercel.app/image?url=https://img-wrapper.vercel.app/image?url=https://placehold.co/800x400/8B0000/FFD700?text=News'}
+                        src={item.image_url || 'https://img-wrapper.vercel.app/image?url=https://img-wrapper.vercel.app/image?url=https://img-wrapper.vercel.app/image?url=https://img-wrapper.vercel.app/image?url=https://img-wrapper.vercel.app/image?url=https://placehold.co/800x400/8B0000/FFD700?text=News'}
                         alt={item.title}
                         className="w-full h-48 object-cover"
                       />
@@ -193,7 +197,7 @@ const News: React.FC = () => {
                   >
                     <div className="flex flex-col md:flex-row gap-6">
                       <img
-                        src={item.image_url || 'https://img-wrapper.vercel.app/image?url=https://img-wrapper.vercel.app/image?url=https://placehold.co/800x400/8B0000/FFD700?text=News'}
+                        src={item.image_url || 'https://img-wrapper.vercel.app/image?url=https://img-wrapper.vercel.app/image?url=https://img-wrapper.vercel.app/image?url=https://img-wrapper.vercel.app/image?url=https://img-wrapper.vercel.app/image?url=https://placehold.co/800x400/8B0000/FFD700?text=News'}
                         alt={item.title}
                         className="w-full md:w-48 h-32 object-cover rounded-lg"
                       />

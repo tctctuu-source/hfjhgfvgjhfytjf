@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { Calendar, MapPin, Trophy, Users, Newspaper, Image, ArrowRight, Loader2 } from 'lucide-react';
+import { Calendar, MapPin, Trophy, Users, Newspaper, Image, ArrowRight, Loader2, AlertTriangle } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { supabase } from '../lib/supabase';
 import { HomepageBackground, GalleryItem, NewsItem } from '../types';
@@ -10,15 +10,22 @@ const Home: React.FC = () => {
   const [gallery, setGallery] = useState<GalleryItem[]>([]);
   const [news, setNews] = useState<NewsItem[]>([]);
   const [loading, setLoading] = useState({ bg: true, gallery: true, news: true });
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
+    const handleError = (err: any, context: string) => {
+      console.error(`Error fetching ${context}:`, err);
+      setError("Could not load page content. Please ensure your Supabase project is connected and the credentials are correct.");
+    };
+
     const fetchBackground = async () => {
       const { data, error } = await supabase
         .from('homepage_background')
         .select('*')
         .eq('is_active', true)
         .single();
-      if (!error) setBackground(data);
+      if (error) handleError(error, 'background');
+      else setBackground(data);
       setLoading(prev => ({ ...prev, bg: false }));
     };
 
@@ -28,7 +35,8 @@ const Home: React.FC = () => {
         .select('*')
         .order('created_at', { ascending: false })
         .limit(6);
-      if (!error) setGallery(data || []);
+      if (error) handleError(error, 'gallery');
+      else setGallery(data || []);
       setLoading(prev => ({ ...prev, gallery: false }));
     };
 
@@ -39,7 +47,8 @@ const Home: React.FC = () => {
         .eq('status', 'published')
         .order('created_at', { ascending: false })
         .limit(3);
-      if (!error) setNews(data || []);
+      if (error) handleError(error, 'news');
+      else setNews(data || []);
       setLoading(prev => ({ ...prev, news: false }));
     };
 
@@ -52,7 +61,7 @@ const Home: React.FC = () => {
     if (loading.bg) {
       return <div className="absolute inset-0 bg-red-900 flex items-center justify-center"><Loader2 className="w-12 h-12 text-white animate-spin" /></div>;
     }
-    if (!background) {
+    if (!background || error) {
       return <div className="absolute inset-0 bg-gradient-to-br from-red-900 via-red-800 to-red-700"></div>;
     }
     if (background.type === 'video') {
@@ -77,6 +86,12 @@ const Home: React.FC = () => {
 
   return (
     <div className="relative">
+      {error && (
+        <div className="bg-yellow-400 text-black p-3 text-center fixed top-16 left-0 right-0 z-[100] flex items-center justify-center gap-2">
+          <AlertTriangle size={16} />
+          {error}
+        </div>
+      )}
       {/* Hero Section */}
       <section className="relative min-h-screen flex items-center justify-center overflow-hidden">
         <HeroBackground />
@@ -89,8 +104,8 @@ const Home: React.FC = () => {
             transition={{ duration: 0.8, delay: 0.2 }}
             className="mb-8"
           >
-            <h2 className="text-white text-2xl md:text-3xl font-light mb-4">SSF Daawa Sector</h2>
-            <h1 className="text-yellow-400 text-6xl md:text-8xl lg:text-9xl font-bold mb-6 tracking-wider">
+            <h2 className="text-white text-2xl md:text-3xl font-light mb-4 font-serif">SSF Daawa Sector</h2>
+            <h1 className="text-yellow-400 text-6xl md:text-8xl lg:text-9xl font-bold mb-6 tracking-wider font-serif">
               Meem Fest
             </h1>
             <p className="text-white text-xl md:text-2xl font-light">
@@ -124,7 +139,7 @@ const Home: React.FC = () => {
       <section className="py-16 bg-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-12">
-            <h2 className="text-3xl font-bold text-gray-900 mb-4">Explore SSF Muhimmath Daawa Sector</h2>
+            <h2 className="text-3xl font-bold text-gray-900 mb-4 font-serif">Explore SSF Muhimmath Daawa Sector</h2>
             <p className="text-gray-600 max-w-2xl mx-auto">
               Discover the various aspects of our institution through these quick access points
             </p>
@@ -157,7 +172,7 @@ const Home: React.FC = () => {
       <section className="py-16 bg-gray-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-12">
-            <h2 className="text-3xl font-bold text-gray-900 mb-4">Gallery</h2>
+            <h2 className="text-3xl font-bold text-gray-900 mb-4 font-serif">Gallery</h2>
             <p className="text-gray-600 max-w-2xl mx-auto">A glimpse into the vibrant moments of Muhimmath.</p>
           </div>
           {loading.gallery ? <div className="flex justify-center"><Loader2 className="w-8 h-8 animate-spin text-red-600" /></div> :
@@ -186,7 +201,7 @@ const Home: React.FC = () => {
       <section className="py-16 bg-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-12">
-            <h2 className="text-3xl font-bold text-gray-900 mb-4">News & Announcements</h2>
+            <h2 className="text-3xl font-bold text-gray-900 mb-4 font-serif">News & Announcements</h2>
             <p className="text-gray-600 max-w-2xl mx-auto">Stay informed with the latest updates from our team.</p>
           </div>
           {loading.news ? <div className="flex justify-center"><Loader2 className="w-8 h-8 animate-spin text-red-600" /></div> :
@@ -194,7 +209,7 @@ const Home: React.FC = () => {
               {news.map((item, index) => (
                 <motion.div key={item.id} initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6, delay: index * 0.15 }}>
                   <div className="bg-gray-50 rounded-lg overflow-hidden border border-gray-200 h-full flex flex-col">
-                    <img src={item.image_url || 'https://img-wrapper.vercel.app/image?url=https://placehold.co/600x400/8B0000/FFFFFF?text=News'} alt={item.title} className="w-full h-40 object-cover" />
+                    <img src={item.image_url || 'https://img-wrapper.vercel.app/image?url=https://img-wrapper.vercel.app/image?url=https://img-wrapper.vercel.app/image?url=https://img-wrapper.vercel.app/image?url=https://placehold.co/600x400/8B0000/FFFFFF?text=News'} alt={item.title} className="w-full h-40 object-cover" />
                     <div className="p-6 flex-grow flex flex-col">
                       <p className="text-sm text-red-600 font-semibold mb-2">{item.category}</p>
                       <h3 className="text-lg font-bold text-gray-900 mb-3 flex-grow">{item.title}</h3>

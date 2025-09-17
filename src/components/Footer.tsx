@@ -64,7 +64,7 @@ const Footer: React.FC = () => {
         </div>
 
         <div className="border-t border-red-800 mt-8 pt-8 text-center">
-          <p className="text-red-200"> Developed By Ibrahim Khaleel Kattathar.</p>
+          <p className="text-red-200"> Developed By <a href="https://ibrahimkhaleel.vercel.app/" target="_blank" rel="noopener noreferrer" className="text-yellow-300 hover:text-yellow-500 transition-colors">Ibrahim Khaleel Kattathar</a>.</p>
         </div>
       </div>
     </footer>

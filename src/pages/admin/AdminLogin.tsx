@@ -68,7 +68,7 @@ const AdminLogin: React.FC = () => {
             >
               <div className="text-center mb-8">
                 <div className="w-16 h-16 bg-red-600 rounded-full flex items-center justify-center mx-auto mb-4"><Lock className="w-8 h-8 text-white" /></div>
-                <h1 className="text-2xl font-bold text-gray-900 mb-2">Admin Login</h1>
+                <h1 className="text-2xl font-bold text-gray-900 mb-2 font-serif">Admin Login</h1>
                 <p className="text-gray-600">Access the Muhimmath admin panel</p>
               </div>
 
@@ -107,7 +107,7 @@ const AdminLogin: React.FC = () => {
             >
               <div className="text-center mb-8">
                 <div className="w-16 h-16 bg-red-600 rounded-full flex items-center justify-center mx-auto mb-4"><Mail className="w-8 h-8 text-white" /></div>
-                <h1 className="text-2xl font-bold text-gray-900 mb-2">Reset Password</h1>
+                <h1 className="text-2xl font-bold text-gray-900 mb-2 font-serif">Reset Password</h1>
                 <p className="text-gray-600">Enter your email to receive a reset link</p>
               </div>
 

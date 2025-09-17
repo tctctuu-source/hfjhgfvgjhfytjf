@@ -5,6 +5,7 @@ import { AboutContent, TeamMember } from '../../types';
 
 const AdminAbout: React.FC = () => {
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [isEditing, setIsEditing] = useState<Record<string, boolean>>({});
   const [content, setContent] = useState<Record<string, string>>({});
   const [teamMembers, setTeamMembers] = useState<TeamMember[]>([]);
@@ -14,13 +15,23 @@ const AdminAbout: React.FC = () => {
 
   const fetchData = async () => {
     setLoading(true);
-    const { data: contentData } = await supabase.from('about_content').select('*');
-    const contentMap = (contentData || []).reduce((acc, item) => ({ ...acc, [item.section]: item.content }), {});
-    setContent(contentMap);
+    setError(null);
+    try {
+      const { data: contentData, error: contentError } = await supabase.from('about_content').select('*');
+      if (contentError) throw contentError;
 
-    const { data: teamData } = await supabase.from('team_members').select('*').order('created_at');
-    setTeamMembers(teamData || []);
-    setLoading(false);
+      const { data: teamData, error: teamError } = await supabase.from('team_members').select('*').order('created_at');
+      if (teamError) throw teamError;
+
+      const contentMap = (contentData || []).reduce((acc, item) => ({ ...acc, [item.section]: item.content }), {});
+      setContent(contentMap);
+      setTeamMembers(teamData || []);
+    } catch (err: any) {
+      console.error("AdminAbout fetch error:", err);
+      setError("Failed to load data. Please check Supabase connection.");
+    } finally {
+      setLoading(false);
+    }
   };
 
   useEffect(() => {
@@ -33,7 +44,7 @@ const AdminAbout: React.FC = () => {
       .upsert({ section: section, content: content[section] }, { onConflict: 'section' });
 
     if (error) {
-      alert(`Error saving content: ${error.message}`);
+      alert(`Error saving content. Please check your connection. Details: ${error.message}`);
     } else {
       setIsEditing(prev => ({ ...prev, [section]: false }));
     }
@@ -41,13 +52,16 @@ const AdminAbout: React.FC = () => {
 
   const handleTeamSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (editingMember) {
-      await supabase.from('team_members').update(teamFormData).eq('id', editingMember.id);
+    const { error } = editingMember
+      ? await supabase.from('team_members').update(teamFormData).eq('id', editingMember.id)
+      : await supabase.from('team_members').insert([teamFormData]);
+    
+    if (error) {
+      alert(`Error saving team member. Please check your connection. Details: ${error.message}`);
     } else {
-      await supabase.from('team_members').insert([teamFormData]);
+      await fetchData();
+      resetTeamForm();
     }
-    await fetchData();
-    resetTeamForm();
   };
 
   const resetTeamForm = () => {
@@ -64,8 +78,12 @@ const AdminAbout: React.FC = () => {
 
   const handleDeleteMember = async (id: string) => {
     if (confirm('Are you sure?')) {
-      await supabase.from('team_members').delete().eq('id', id);
-      await fetchData();
+      const { error } = await supabase.from('team_members').delete().eq('id', id);
+      if (error) {
+        alert(`Error deleting member. Please check your connection. Details: ${error.message}`);
+      } else {
+        await fetchData();
+      }
     }
   };
 
@@ -76,6 +94,7 @@ const AdminAbout: React.FC = () => {
   ];
 
   if (loading) return <div className="flex justify-center items-center h-full"><Loader2 className="w-8 h-8 animate-spin text-red-600" /></div>;
+  if (error) return <div className="text-red-600 p-4 bg-red-100 rounded-lg">{error}</div>;
 
   return (
     <div className="space-y-6">

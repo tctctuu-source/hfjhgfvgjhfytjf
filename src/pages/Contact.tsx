@@ -13,6 +13,7 @@ const Contact: React.FC = () => {
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitStatus, setSubmitStatus] = useState<'success' | 'error' | null>(null);
+  const [submitMessage, setSubmitMessage] = useState('');
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
@@ -26,6 +27,7 @@ const Contact: React.FC = () => {
     e.preventDefault();
     setIsSubmitting(true);
     setSubmitStatus(null);
+    setSubmitMessage('');
 
     const { error } = await supabase.from('contacts').insert([{
       name: formData.name,
@@ -38,9 +40,11 @@ const Contact: React.FC = () => {
 
     if (error) {
       setSubmitStatus('error');
+      setSubmitMessage('Failed to send message. Please check your connection and try again.');
       console.error('Error submitting contact form:', error);
     } else {
       setSubmitStatus('success');
+      setSubmitMessage('Thank you for your message! We will get back to you soon.');
       setFormData({
         name: '',
         email: '',
@@ -89,7 +93,7 @@ const Contact: React.FC = () => {
           transition={{ duration: 0.6 }}
           className="text-center mb-12"
         >
-          <h1 className="text-4xl font-bold text-gray-900 mb-4">Get in Touch</h1>
+          <h1 className="text-4xl font-bold text-gray-900 mb-4 font-serif">Get in Touch</h1>
           <p className="text-gray-600 max-w-2xl mx-auto">
             Have questions about Muhimmath? Want to participate or collaborate? We'd love to hear from you!
           </p>
@@ -230,11 +234,10 @@ const Contact: React.FC = () => {
                 {isSubmitting ? <Loader2 className="w-5 h-5 animate-spin" /> : <Send className="w-5 h-5" />}
                 {isSubmitting ? 'Sending...' : 'Send Message'}
               </button>
-              {submitStatus === 'success' && (
-                <p className="text-green-600 text-sm text-center">Thank you for your message! We will get back to you soon.</p>
-              )}
-              {submitStatus === 'error' && (
-                <p className="text-red-600 text-sm text-center">Sorry, there was an error sending your message. Please try again.</p>
+              {submitStatus && (
+                <p className={`text-sm text-center ${submitStatus === 'success' ? 'text-green-600' : 'text-red-600'}`}>
+                  {submitMessage}
+                </p>
               )}
             </form>
           </motion.div>

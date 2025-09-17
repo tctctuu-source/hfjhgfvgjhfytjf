@@ -21,7 +21,7 @@ const AdminTeams: React.FC = () => {
       .order('points', { ascending: false });
 
     if (error) {
-      setError(error.message);
+      setError("Could not fetch teams. Please check your Supabase connection.");
       console.error('Error fetching teams:', error);
     } else {
       setTeams(data || []);
@@ -44,7 +44,7 @@ const AdminTeams: React.FC = () => {
     const { error } = await mutation;
     
     if (error) {
-      alert(`Error saving team: ${error.message}`);
+      alert(`Error saving team. Please check your connection. Details: ${error.message}`);
     } else {
       await fetchTeams();
       resetForm();
@@ -68,7 +68,7 @@ const AdminTeams: React.FC = () => {
     if (confirm('Are you sure you want to delete this team? This action cannot be undone.')) {
       const { error } = await supabase.from('teams').delete().eq('id', id);
       if (error) {
-        alert(`Error deleting team: ${error.message}`);
+        alert(`Error deleting team. Please check your connection. Details: ${error.message}`);
       } else {
         await fetchTeams();
       }
@@ -123,7 +123,7 @@ const AdminTeams: React.FC = () => {
               {loading ? (
                 <tr><td colSpan={4} className="text-center py-8"><Loader2 className="w-6 h-6 text-red-600 animate-spin mx-auto" /></td></tr>
               ) : error ? (
-                 <tr><td colSpan={4} className="text-center py-8 text-red-600">Error: {error}</td></tr>
+                 <tr><td colSpan={4} className="text-center py-8 text-red-600">{error}</td></tr>
               ) : (
                 filteredTeams.map((team, index) => (
                   <tr key={team.id} className="hover:bg-gray-50">

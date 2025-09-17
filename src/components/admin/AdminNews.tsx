@@ -29,7 +29,7 @@ const AdminNews: React.FC = () => {
       .order('created_at', { ascending: false });
 
     if (error) {
-      setError(error.message);
+      setError("Could not fetch news. Please check your Supabase connection.");
       console.error('Error fetching news:', error);
     } else {
       setNews(data || []);
@@ -44,21 +44,18 @@ const AdminNews: React.FC = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (editingNews) {
-      const { error } = await supabase
-        .from('news')
-        .update({ ...formData })
-        .eq('id', editingNews.id);
-      if (error) alert(`Error updating news: ${error.message}`);
+    const mutation = editingNews
+      ? supabase.from('news').update({ ...formData }).eq('id', editingNews.id)
+      : supabase.from('news').insert([{ ...formData, views: 0 }]);
+      
+    const { error } = await mutation;
+
+    if (error) {
+      alert(`Error saving news. Please check your connection. Details: ${error.message}`);
     } else {
-      const { error } = await supabase
-        .from('news')
-        .insert([{ ...formData, views: 0 }]);
-      if (error) alert(`Error adding news: ${error.message}`);
+      await fetchNews();
+      resetForm();
     }
-    
-    await fetchNews();
-    resetForm();
   };
 
   const resetForm = () => {
@@ -95,7 +92,7 @@ const AdminNews: React.FC = () => {
     if (confirm('Are you sure you want to delete this news item?')) {
       const { error } = await supabase.from('news').delete().eq('id', id);
       if (error) {
-        alert(`Error deleting news: ${error.message}`);
+        alert(`Error deleting news. Please check your connection. Details: ${error.message}`);
       } else {
         await fetchNews();
       }
@@ -153,13 +150,13 @@ const AdminNews: React.FC = () => {
               {loading ? (
                 <tr><td colSpan={6} className="text-center py-8"><Loader2 className="w-6 h-6 text-red-600 animate-spin mx-auto" /></td></tr>
               ) : error ? (
-                 <tr><td colSpan={6} className="text-center py-8 text-red-600">Error: {error}</td></tr>
+                 <tr><td colSpan={6} className="text-center py-8 text-red-600">{error}</td></tr>
               ) : (
                 filteredNews.map((item) => (
                   <tr key={item.id} className="hover:bg-gray-50">
                     <td className="px-6 py-4">
                       <div className="flex items-center">
-                        <img src={item.image_url || 'https://img-wrapper.vercel.app/image?url=https://img-wrapper.vercel.app/image?url=https://placehold.co/40x40/8B0000/FFFFFF?text=M'} alt={item.title} className="w-10 h-10 rounded object-cover mr-3" />
+                        <img src={item.image_url || 'https://img-wrapper.vercel.app/image?url=https://img-wrapper.vercel.app/image?url=https://img-wrapper.vercel.app/image?url=https://img-wrapper.vercel.app/image?url=https://placehold.co/40x40/8B0000/FFFFFF?text=M'} alt={item.title} className="w-10 h-10 rounded object-cover mr-3" />
                         <div>
                           <div className="font-medium text-gray-900">{item.title}</div>
                           {item.is_featured && <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-yellow-100 text-yellow-800">Featured</span>}

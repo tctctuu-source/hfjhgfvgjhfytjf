@@ -22,7 +22,7 @@ const AdminHomepage: React.FC = () => {
       .order('created_at', { ascending: false });
 
     if (error) {
-      setError(error.message);
+      setError("Could not fetch backgrounds. Please check your Supabase connection.");
     } else {
       setBackgrounds(data || []);
     }
@@ -38,7 +38,7 @@ const AdminHomepage: React.FC = () => {
     setIsSubmitting(true);
     const { error } = await supabase.from('homepage_background').insert([formData]);
     if (error) {
-      alert(`Error adding background: ${error.message}`);
+      alert(`Error adding background. Please check your connection. Details: ${error.message}`);
     } else {
       await fetchBackgrounds();
       resetForm();
@@ -55,7 +55,7 @@ const AdminHomepage: React.FC = () => {
     if (confirm('Are you sure you want to delete this background?')) {
       const { error } = await supabase.from('homepage_background').delete().eq('id', id);
       if (error) {
-        alert(`Error deleting background: ${error.message}`);
+        alert(`Error deleting background. Please check your connection. Details: ${error.message}`);
       } else {
         await fetchBackgrounds();
       }
@@ -71,7 +71,7 @@ const AdminHomepage: React.FC = () => {
       .eq('is_active', true);
     
     if (deactivateError) {
-      alert(`Error deactivating old background: ${deactivateError.message}`);
+      alert(`Error deactivating old background. Please check your connection. Details: ${deactivateError.message}`);
       return;
     }
 
@@ -82,7 +82,7 @@ const AdminHomepage: React.FC = () => {
       .eq('id', id);
       
     if (activateError) {
-      alert(`Error activating new background: ${activateError.message}`);
+      alert(`Error activating new background. Please check your connection. Details: ${activateError.message}`);
     } else {
       await fetchBackgrounds();
     }
@@ -130,7 +130,7 @@ const AdminHomepage: React.FC = () => {
               {loading ? (
                 <tr><td colSpan={5} className="text-center py-8"><Loader2 className="w-6 h-6 text-red-600 animate-spin mx-auto" /></td></tr>
               ) : error ? (
-                 <tr><td colSpan={5} className="text-center py-8 text-red-600">Error: {error}</td></tr>
+                 <tr><td colSpan={5} className="text-center py-8 text-red-600">{error}</td></tr>
               ) : (
                 backgrounds.map((bg) => (
                   <tr key={bg.id} className="hover:bg-gray-50">

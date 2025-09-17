@@ -26,7 +26,7 @@ const AdminHeader: React.FC<AdminHeaderProps> = ({ onMenuClick }) => {
           >
             <Menu className="w-6 h-6" />
           </button>
-          <h1 className="text-xl font-semibold text-gray-900">
+          <h1 className="text-xl font-semibold text-gray-900 font-serif">
             Muhimmath Admin Dashboard
           </h1>
         </div>

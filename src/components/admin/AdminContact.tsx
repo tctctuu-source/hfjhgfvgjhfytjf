@@ -19,7 +19,7 @@ const AdminContact: React.FC = () => {
       .order('created_at', { ascending: false });
 
     if (error) {
-      setError(error.message);
+      setError("Could not fetch messages. Please check your Supabase connection.");
       console.error('Error fetching messages:', error);
     } else {
       setMessages(data || []);
@@ -34,7 +34,7 @@ const AdminContact: React.FC = () => {
   const handleDelete = async (id: string) => {
     if (confirm('Are you sure you want to delete this message?')) {
       const { error } = await supabase.from('contacts').delete().eq('id', id);
-      if (error) alert(`Error deleting message: ${error.message}`);
+      if (error) alert(`Error deleting message. Details: ${error.message}`);
       else await fetchMessages();
     }
   };
@@ -44,7 +44,7 @@ const AdminContact: React.FC = () => {
       .from('contacts')
       .update({ status })
       .eq('id', id);
-    if (error) alert(`Error updating status: ${error.message}`);
+    if (error) alert(`Error updating status. Details: ${error.message}`);
     else await fetchMessages();
   };
 
@@ -118,7 +118,7 @@ const AdminContact: React.FC = () => {
               {loading ? (
                 <tr><td colSpan={6} className="text-center py-8"><Loader2 className="w-6 h-6 text-red-600 animate-spin mx-auto" /></td></tr>
               ) : error ? (
-                <tr><td colSpan={6} className="text-center py-8 text-red-600">Error: {error}</td></tr>
+                <tr><td colSpan={6} className="text-center py-8 text-red-600">{error}</td></tr>
               ) : (
                 filteredMessages.map((message) => (
                   <tr key={message.id} className={`hover:bg-gray-50 ${message.status === 'unread' ? 'bg-blue-50' : ''}`}>

@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { Search, Loader2, Trophy, Users } from 'lucide-react';
+import { Search, Loader2, Trophy, Users, Award, Medal, Star } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { supabase } from '../lib/supabase';
 import { Result, Team } from '../types';
@@ -22,28 +22,26 @@ const Results: React.FC = () => {
       setLoading(true);
       setError(null);
       
-      const fetchPromises = [
-        supabase.from('results').select('*').eq('year', selectedYear).order('created_at', { ascending: false }),
-        supabase.from('teams').select('*').order('points', { ascending: false })
-      ];
-      
-      const [resultsResponse, teamsResponse] = await Promise.all(fetchPromises);
+      try {
+        const fetchPromises = [
+          supabase.from('results').select('*').eq('year', selectedYear).order('created_at', { ascending: false }),
+          supabase.from('teams').select('*').order('points', { ascending: false })
+        ];
+        
+        const [resultsResponse, teamsResponse] = await Promise.all(fetchPromises);
 
-      if (resultsResponse.error) {
-        setError(resultsResponse.error.message);
-        console.error("Error fetching results:", resultsResponse.error);
-      } else {
+        if (resultsResponse.error) throw resultsResponse.error;
         setResults(resultsResponse.data || []);
-      }
 
-      if (teamsResponse.error) {
-        setError(teamsResponse.error.message);
-        console.error("Error fetching teams:", teamsResponse.error);
-      } else {
+        if (teamsResponse.error) throw teamsResponse.error;
         setTeams(teamsResponse.data || []);
-      }
 
-      setLoading(false);
+      } catch (err: any) {
+        setError("Could not fetch results. Please ensure your Supabase project is connected and running.");
+        console.error("Error fetching results data:", err);
+      } finally {
+        setLoading(false);
+      }
     };
 
     fetchData();
@@ -82,6 +80,17 @@ const Results: React.FC = () => {
     { bg: 'bg-purple-500', gradient: 'from-purple-400 to-purple-600' },
     { bg: 'bg-red-500', gradient: 'from-red-400 to-red-600' },
   ];
+
+  const programCardColors = [
+    { topBg: 'bg-yellow-400', circleBg: 'bg-yellow-500', textColor: 'text-yellow-600', icon: Trophy },
+    { topBg: 'bg-orange-400', circleBg: 'bg-orange-500', textColor: 'text-orange-600', icon: Award },
+    { topBg: 'bg-sky-400', circleBg: 'bg-sky-500', textColor: 'text-sky-600', icon: Medal },
+    { topBg: 'bg-teal-400', circleBg: 'bg-teal-500', textColor: 'text-teal-600', icon: Star },
+    { topBg: 'bg-red-400', circleBg: 'bg-red-500', textColor: 'text-red-600', icon: Users },
+    { topBg: 'bg-purple-400', circleBg: 'bg-purple-500', textColor: 'text-purple-600', icon: Award },
+    { topBg: 'bg-pink-400', circleBg: 'bg-pink-500', textColor: 'text-pink-600', icon: Medal },
+    { topBg: 'bg-green-400', circleBg: 'bg-green-500', textColor: 'text-green-600', icon: Star },
+  ];
   
   const handleProgramClick = (program: { event: string; category: string }) => {
     const programWinners = results.filter(r => r.event === program.event && r.category === program.category);
@@ -97,7 +106,7 @@ const Results: React.FC = () => {
           transition={{ duration: 0.6 }}
           className="mb-8"
         >
-          <h1 className="text-4xl font-bold text-gray-900 mb-2">Results {selectedYear}</h1>
+          <h1 className="text-4xl font-bold text-gray-900 mb-2 font-serif">Results {selectedYear}</h1>
           <p className="text-gray-600">
             {loading ? 'Loading...' : `Published ${activeTab === 'program' ? filteredPrograms.length : filteredTeams.length} results`}
           </p>
@@ -156,7 +165,12 @@ const Results: React.FC = () => {
         {loading ? (
           <div className="flex justify-center items-center py-12"><Loader2 className="w-8 h-8 text-red-600 animate-spin" /></div>
         ) : error ? (
-          <div className="text-center py-12 text-red-600"><h3 className="text-xl font-semibold">Error loading results</h3><p>{error}</p></div>
+          <div className="text-center py-12">
+            <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded-lg inline-block">
+              <h3 className="font-bold">Connection Error</h3>
+              <p>{error}</p>
+            </div>
+          </div>
         ) : (
           <>
             {activeTab === 'program' && (
@@ -164,20 +178,36 @@ const Results: React.FC = () => {
                 {filteredPrograms.length === 0 ? (
                   <div className="text-center py-12"><div className="text-gray-400 text-6xl mb-4">🔍</div><h3 className="text-xl font-semibold text-gray-600 mb-2">No Programs Found</h3><p className="text-gray-500">Try adjusting your search criteria.</p></div>
                 ) : (
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                    {filteredPrograms.map((program, index) => (
-                      <motion.div
-                        key={`${program.event}-${program.category}`}
-                        initial={{ opacity: 0, y: 20 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        transition={{ duration: 0.4, delay: (index % 12) * 0.05 }}
-                        onClick={() => handleProgramClick(program)}
-                        className="bg-gray-100 rounded-lg border border-gray-300 p-4 flex items-center space-x-4 hover:shadow-md hover:border-black transition-all cursor-pointer"
-                      >
-                        <div className="flex-shrink-0 w-10 h-10 bg-black text-white rounded-full flex items-center justify-center font-bold text-sm">{index + 1}</div>
-                        <div><h3 className="font-semibold text-gray-900 uppercase tracking-wide">{program.event}</h3><p className="text-sm text-gray-600 uppercase">{program.category}</p></div>
-                      </motion.div>
-                    ))}
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-x-6 gap-y-16">
+                    {filteredPrograms.map((program, index) => {
+                      const color = programCardColors[index % programCardColors.length];
+                      const Icon = color.icon;
+                      
+                      return (
+                        <motion.div
+                          key={`${program.event}-${program.category}`}
+                          initial={{ opacity: 0, y: 30 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          transition={{ duration: 0.5, delay: (index % 16) * 0.05 }}
+                          className="h-full"
+                          onClick={() => handleProgramClick(program)}
+                        >
+                          <div className="relative bg-white rounded-2xl shadow-lg pt-14 pb-8 px-6 text-center h-full hover:shadow-xl hover:-translate-y-2 transition-all duration-300 cursor-pointer flex flex-col">
+                            <div className={`absolute -top-6 left-1/2 -translate-x-1/2 w-40 h-14 ${color.topBg} rounded-full shadow-md`}>
+                              <div className={`absolute -bottom-5 left-1/2 -translate-x-1/2 w-14 h-14 rounded-full flex items-center justify-center text-white font-bold text-xl shadow-lg border-4 border-white ${color.circleBg}`}>
+                                {String(index + 1).padStart(2, '0')}
+                              </div>
+                            </div>
+                            
+                            <div className="flex-grow flex flex-col justify-center items-center">
+                                <Icon className={`w-12 h-12 mx-auto mb-4 ${color.textColor}`} />
+                                <h3 className={`font-bold text-lg text-gray-800 uppercase`}>{program.event}</h3>
+                                <p className="text-sm text-gray-500 mt-1">{program.category}</p>
+                            </div>
+                          </div>
+                        </motion.div>
+                      );
+                    })}
                   </div>
                 )}
               </motion.div>

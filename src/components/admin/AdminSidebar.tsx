@@ -44,7 +44,7 @@ const AdminSidebar: React.FC<AdminSidebarProps> = ({ isOpen, onClose }) => {
             <div className="w-8 h-8 bg-red-600 rounded-lg flex items-center justify-center">
               <span className="text-white font-bold text-sm">M</span>
             </div>
-            <span className="text-lg font-semibold text-gray-900">Muhimmath Admin</span>
+            <span className="text-lg font-semibold text-gray-900 font-serif">Muhimmath Admin</span>
           </div>
           <button
             onClick={onClose}

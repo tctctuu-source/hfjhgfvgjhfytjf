@@ -28,7 +28,7 @@ const AdminGallery: React.FC = () => {
       .order('created_at', { ascending: false });
 
     if (error) {
-      setError(error.message);
+      setError("Could not fetch gallery. Please check your Supabase connection.");
       console.error('Error fetching gallery:', error);
     } else {
       setGallery(data || []);
@@ -61,7 +61,7 @@ const AdminGallery: React.FC = () => {
     }
     
     if (mutationError) {
-      setFormError(mutationError.message);
+      setFormError(`Submission failed. Please check your connection. Details: ${mutationError.message}`);
     } else {
       await fetchGallery();
       resetForm();
@@ -99,7 +99,7 @@ const AdminGallery: React.FC = () => {
     if (confirm('Are you sure you want to delete this photo?')) {
       const { error } = await supabase.from('gallery').delete().eq('id', id);
       if (error) {
-        alert(`Error deleting photo: ${error.message}`);
+        alert(`Error deleting photo. Please check your connection. Details: ${error.message}`);
       } else {
         await fetchGallery();
       }
@@ -144,7 +144,7 @@ const AdminGallery: React.FC = () => {
         {loading ? (
           <div className="col-span-full text-center py-8"><Loader2 className="w-6 h-6 text-red-600 animate-spin mx-auto" /></div>
         ) : error ? (
-          <div className="col-span-full text-center py-8 text-red-600">Error: {error}</div>
+          <div className="col-span-full text-center py-8 text-red-600">{error}</div>
         ) : (
           filteredGallery.map((item) => (
             <div key={item.id} className="bg-white rounded-lg shadow-md overflow-hidden">

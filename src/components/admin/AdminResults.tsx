@@ -33,7 +33,7 @@ const AdminResults: React.FC = () => {
       .order('created_at', { ascending: false });
 
     if (error) {
-      setError(error.message);
+      setError("Could not fetch results. Please check your Supabase connection.");
       console.error('Error fetching results:', error);
     } else {
       setResults(data || []);
@@ -55,45 +55,40 @@ const AdminResults: React.FC = () => {
     e.preventDefault();
     setIsSubmitting(true);
 
-    if (editingCompetition) {
-      const { error: deleteError } = await supabase
-        .from('results')
-        .delete()
-        .match(editingCompetition);
+    try {
+      if (editingCompetition) {
+        const { error: deleteError } = await supabase
+          .from('results')
+          .delete()
+          .match(editingCompetition);
+        
+        if (deleteError) throw deleteError;
+      }
+
+      const resultsToInsert = winnersData.winners
+        .filter(winner => winner.participant.trim() !== '')
+        .map(winner => ({
+          event: winnersData.program,
+          category: winnersData.category,
+          year: winnersData.year,
+          participant: winner.participant,
+          school: winner.school,
+          position: winner.position,
+        }));
+
+      if (resultsToInsert.length > 0) {
+        const { error: insertError } = await supabase.from('results').insert(resultsToInsert);
+        if (insertError) throw insertError;
+      }
       
-      if (deleteError) {
-        alert(`Error updating results: ${deleteError.message}`);
-        setIsSubmitting(false);
-        return;
-      }
-    }
-
-    const resultsToInsert = winnersData.winners
-      .filter(winner => winner.participant.trim() !== '')
-      .map(winner => ({
-        event: winnersData.program,
-        category: winnersData.category,
-        year: winnersData.year,
-        participant: winner.participant,
-        school: winner.school,
-        position: winner.position,
-      }));
-
-    if (resultsToInsert.length > 0) {
-      const { error: insertError } = await supabase.from('results').insert(resultsToInsert);
-      if (insertError) {
-        alert(`Error saving winners: ${insertError.message}`);
-      } else {
-        await fetchResults();
-        resetForm();
-      }
-    } else {
-      // This handles deleting a competition by removing all winners
       await fetchResults();
       resetForm();
+
+    } catch (err: any) {
+      alert(`Error saving results. Please check your connection. Details: ${err.message}`);
+    } finally {
+      setIsSubmitting(false);
     }
-    
-    setIsSubmitting(false);
   };
 
   const resetForm = () => {
@@ -136,7 +131,7 @@ const AdminResults: React.FC = () => {
     if (window.confirm('Are you sure you want to delete this result?')) {
       const { error } = await supabase.from('results').delete().eq('id', id);
       if (error) {
-        alert(`Error deleting result: ${error.message}`);
+        alert(`Error deleting result. Please check your connection. Details: ${error.message}`);
       } else {
         await fetchResults();
       }
@@ -182,7 +177,7 @@ const AdminResults: React.FC = () => {
         .match({ event, category, year });
 
       if (error) {
-        alert(`Error deleting competition results: ${error.message}`);
+        alert(`Error deleting competition results. Please check your connection. Details: ${error.message}`);
       } else {
         await fetchResults();
       }

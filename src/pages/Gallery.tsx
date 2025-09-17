@@ -19,24 +19,27 @@ const Gallery: React.FC = () => {
       setLoading(true);
       setError(null);
 
-      let query = supabase
-        .from('gallery')
-        .select('*')
-        .order('created_at', { ascending: false });
+      try {
+        let query = supabase
+          .from('gallery')
+          .select('*')
+          .order('created_at', { ascending: false });
 
-      if (selectedCategory !== 'all') {
-        query = query.eq('category', selectedCategory);
-      }
+        if (selectedCategory !== 'all') {
+          query = query.eq('category', selectedCategory);
+        }
 
-      const { data, error } = await query;
+        const { data, error: queryError } = await query;
 
-      if (error) {
-        setError(error.message);
-        console.error("Error fetching gallery:", error);
-      } else {
+        if (queryError) throw queryError;
+        
         setGalleryItems(data || []);
+      } catch (err: any) {
+        setError("Could not fetch gallery. Please ensure your Supabase project is connected and running.");
+        console.error("Error fetching gallery:", err);
+      } finally {
+        setLoading(false);
       }
-      setLoading(false);
     };
 
     fetchGallery();
@@ -73,7 +76,7 @@ const Gallery: React.FC = () => {
           transition={{ duration: 0.6 }}
           className="text-center mb-12"
         >
-          <h1 className="text-4xl font-bold text-gray-900 mb-4">Photo Gallery</h1>
+          <h1 className="text-4xl font-bold text-gray-900 mb-4 font-serif">Photo Gallery</h1>
           <p className="text-gray-600 max-w-2xl mx-auto">
             Explore memories from past Muhimmath events through our curated photo collection
           </p>
@@ -123,9 +126,11 @@ const Gallery: React.FC = () => {
             <span className="ml-4 text-gray-600">Loading Gallery...</span>
           </div>
         ) : error ? (
-          <div className="text-center py-12 text-red-600">
-            <h3 className="text-xl font-semibold">Error loading gallery</h3>
-            <p>{error}</p>
+          <div className="text-center py-12">
+            <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded-lg inline-block">
+              <h3 className="font-bold">Connection Error</h3>
+              <p>{error}</p>
+            </div>
           </div>
         ) : (
           <>
@@ -147,7 +152,7 @@ const Gallery: React.FC = () => {
                 >
                   <div className="relative overflow-hidden">
                     <img
-                      src={item.image_url || 'https://img-wrapper.vercel.app/image?url=https://img-wrapper.vercel.app/image?url=https://placehold.co/600x400/8B0000/FFD700?text=Gallery'}
+                      src={item.image_url || 'https://img-wrapper.vercel.app/image?url=https://img-wrapper.vercel.app/image?url=https://img-wrapper.vercel.app/image?url=https://img-wrapper.vercel.app/image?url=https://img-wrapper.vercel.app/image?url=https://placehold.co/600x400/8B0000/FFD700?text=Gallery'}
                       alt={item.title}
                       className="w-full h-48 object-cover group-hover:scale-110 transition-transform duration-300"
                     />

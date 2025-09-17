@@ -36,7 +36,7 @@ const About: React.FC = () => {
         setTeamMembers(teamData || []);
 
       } catch (err: any) {
-        setError(err.message);
+        setError("Could not fetch page data. Please ensure your Supabase project is connected and running.");
         console.error("Error fetching about page data:", err);
       } finally {
         setLoading(false);
@@ -63,8 +63,11 @@ const About: React.FC = () => {
 
   if (error) {
     return (
-      <div className="min-h-screen flex justify-center items-center text-red-600">
-        Error loading page data: {error}
+      <div className="min-h-screen flex justify-center items-center p-4">
+        <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded-lg text-center">
+          <h3 className="font-bold">Connection Error</h3>
+          <p>{error}</p>
+        </div>
       </div>
     );
   }
@@ -80,7 +83,7 @@ const About: React.FC = () => {
             transition={{ duration: 0.8 }}
             className="text-center"
           >
-            <h1 className="text-4xl md:text-6xl font-bold mb-6">About SSF Muhimmath</h1>
+            <h1 className="text-4xl md:text-6xl font-bold mb-6 font-serif">About SSF Muhimmath</h1>
             <p className="text-xl md:text-2xl text-red-100 max-w-3xl mx-auto">
               Celebrating cultural unity and creative expression in the Daawa Sector
             </p>
@@ -103,7 +106,7 @@ const About: React.FC = () => {
                 <h2 className="text-2xl font-bold text-gray-900">Our Mission</h2>
               </div>
               <p className="text-gray-600 leading-relaxed">
-                {aboutContent.mission || 'Loading...'}
+                {aboutContent.mission || 'Loading mission...'}
               </p>
             </motion.div>
 
@@ -118,7 +121,7 @@ const About: React.FC = () => {
                 <h2 className="text-2xl font-bold text-gray-900">Our Vision</h2>
               </div>
               <p className="text-gray-600 leading-relaxed">
-                {aboutContent.vision || 'Loading...'}
+                {aboutContent.vision || 'Loading vision...'}
               </p>
             </motion.div>
           </div>
@@ -183,7 +186,7 @@ const About: React.FC = () => {
           >
             <div className="prose max-w-none text-gray-600">
               <p className="text-lg leading-relaxed">
-                {aboutContent.history || 'Loading...'}
+                {aboutContent.history || 'Loading history...'}
               </p>
             </div>
           </motion.div>
